@@ -1,5 +1,6 @@
 var startButton = document.getElementById("start-button");
 var stopButton = document.getElementById("stop-button");
+var attendeesButton = document.getElementById("get_attendees");
 
 var urlParams = new URLSearchParams(window.location.search);
 
@@ -127,9 +128,20 @@ async function stop() {
     console.log(data);
 }
 
+async function get_attendees(){
+    console.log("starting");
+    const response = await fetch("get_attendees", {
+        method: "GET",
+        headers: new Headers(),
+    });
+    const data = await response.json();
+    console.log(data);
+    console.log("complete");
+}
+
 window.addEventListener("DOMContentLoaded", () => {
     startButton.addEventListener("click", start);
-
+    attendeesButton.addEventListener("click", get_attendees);
     if (isMeetingHost) {
         stopButton.addEventListener("click", stop);
     }

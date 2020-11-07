@@ -64,6 +64,17 @@ Resources:
             Path: /end
             Method: POST
       CodeUri: MeetingEndLambda
+  GetAttendeesLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers.get_attendees
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /get_attendees
+            Method: GET
+      CodeUri: GetAttendeesLambda
 Outputs:
   ApiURL:
     Description: API endpoint URL for Prod environment

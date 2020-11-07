@@ -68,6 +68,18 @@ Resources:
          Properties:
            Path: /end
            Method: POST
+ GetAttendeesLambda:
+   Type: AWS::Serverless::Function
+   Properties:
+     Handler: handlers.get_attendees
+     Events:
+       Api1:
+         Type: Api
+         Properties:
+           Path: /get_attendees
+           Method: GET
+
+
 Outputs:
  ApiURL:
    Description: "API endpoint URL for Prod environment"

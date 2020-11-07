@@ -1,8 +1,7 @@
 const AWS = require("aws-sdk");
-
 const chime = new AWS.Chime();
 const { v4: uuidv4 } = require("uuid");
-
+const api = require('./api');
 // Set the AWS SDK Chime endpoint. The global endpoint is https://service.chime.aws.amazon.com.
 chime.endpoint = new AWS.Endpoint("https://service.chime.aws.amazon.com");
 
@@ -65,6 +64,16 @@ exports.end = async (event, context, callback) => {
     }).promise();
     return json(200, "application/json", {});
 };
+
+exports.get_attendees = async (event, context, callback) => {
+    const body = JSON.parse(event.body);
+    console.log("called get_attendees");
+    var vwait_time = await api.get_wait_time();
+    console.log(vwait_time);
+    var attendees = {first_name:"Nathan", last_name:"Elliott", wait_time: vwait_time};
+    return json(200, "application/json", attendees);
+};
+
 
 const StaticFileHandler = require('serverless-aws-static-file-handler')
 
