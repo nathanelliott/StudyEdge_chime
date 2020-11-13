@@ -2,6 +2,7 @@ const AWS = require("aws-sdk");
 const chime = new AWS.Chime();
 const { v4: uuidv4 } = require("uuid");
 const api = require('./api');
+const pusher = require('./pusher');
 // Set the AWS SDK Chime endpoint. The global endpoint is https://service.chime.aws.amazon.com.
 chime.endpoint = new AWS.Endpoint("https://service.chime.aws.amazon.com");
 
@@ -66,12 +67,51 @@ exports.end = async (event, context, callback) => {
 };
 
 exports.get_attendees = async (event, context, callback) => {
-    const body = JSON.parse(event.body);
+    // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Chime.html#listAttendees-property
+    const query = event.queryStringParameters;
     console.log("called get_attendees");
-    var vwait_time = await api.get_wait_time();
-    console.log(vwait_time);
-    var attendees = {first_name:"Nathan", last_name:"Elliott", wait_time: vwait_time};
-    return json(200, "application/json", attendees);
+    console.log(query);
+    meetingId = query.meetingId;
+    const attendees = await chime
+        .listAttendees({
+            //ID of the meeting
+            MeetingId: meetingId
+        })
+        .promise();
+    console.log("attendees are here");
+    console.log(attendees);
+    // var vwait_time = await api.get_wait_time();
+    // console.log(vwait_time);
+    // var attendees = {first_name:"Nathan", last_name:"Elliott", wait_time: vwait_time};
+    // var attendees = await api.get_attendees_list(8);
+    var response = {meetingId:meetingId, attendees:attendees};
+    return json(200, "application/json", response);
+};
+
+exports.loginProfessor = async (event, context, callback) => {
+    console.log("you are calling login professor");
+    const body = event.body;
+    console.log(body);
+
+    // const query = event.queryStringParameters;
+    // console.log("here is qs");
+    // console.log(query);
+    // console.log("here is event");
+    // console.log(event);
+    // console.log("you are done calling login professor");
+    var response = {success: true};
+    return json(200, "application/json", response);
+};
+
+exports.loginStudent = async (event, context, callback) => {
+    console.log("you are calling login student");
+    const body = JSON.parse(event.body);
+    console.log(body);
+
+    pusher.sendPusher(meetingId, "bobl", data);
+
+    var response = {success: true};
+    return json(200, "application/json", response);
 };
 
 

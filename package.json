@@ -6,6 +6,7 @@
   "dependencies": {
     "amazon-chime-sdk-js": "^1.21.0",
     "aws-sdk": "^2.784.0",
+    "pusher": "^4.0.1",
     "serverless-aws-static-file-handler": "^2.0.6",
     "uuid": "^8.3.1"
   },

@@ -4,4 +4,4 @@
 [build_definitions.e4ac6ee8-4cc0-4e47-8b39-d020b8da448e]
 codeuri = "."
 runtime = "nodejs12.x"
-functions = ["MeetingIndexLambda", "MeetingJoinLambda", "MeetingEndLambda", "GetAttendeesLambda"]
+functions = ["MeetingIndexLambda", "MeetingJoinLambda", "MeetingEndLambda", "GetAttendeesLambda", "LoginProfessorLambda", "LoginStudentLambda"]

@@ -75,6 +75,28 @@ Resources:
             Path: /get_attendees
             Method: GET
       CodeUri: GetAttendeesLambda
+  LoginProfessorLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers.loginProfessor
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /login_professor
+            Method: POST
+      CodeUri: LoginProfessorLambda
+  LoginStudentLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers.loginStudent
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /login_student
+            Method: POST
+      CodeUri: LoginStudentLambda
 Outputs:
   ApiURL:
     Description: API endpoint URL for Prod environment

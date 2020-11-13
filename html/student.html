@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Goboard Office Hours Prototype</title>
+    <link rel="stylesheet" href="assets/css/reset.css" />
+    <link rel="stylesheet" href="assets/css/app.css" />
+    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+    <script src="assets/js/amazon-chime-sdk.min.js"></script>
+    <script src="https://unpkg.com/uuid@latest/dist/umd/uuidv4.min.js"></script>
+    <style>
+      #video-list video {
+        width: 600px;
+        height: 400px;
+      }
+    </style>
+  </head>
+  <body>
+        <h1>Welcome to office hours student!</h1>
+        <input type="text" name="student-name" id="student-name"/>
+        <audio style="display: none" id="meeting-audio"></audio>
+        <button type="button" id="start-button" style="display: none;"></button>
+        <p id="meeting-link"></p>
+        <div id="video-list"></div>
+        <script src="assets/js/student.js"></script>
+  </body>
+</html>
