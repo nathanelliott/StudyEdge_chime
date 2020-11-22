@@ -92,28 +92,29 @@ exports.loginProfessor = async (event, context, callback) => {
     console.log("you are calling login professor");
     const body = event.body;
     console.log(body);
-
-    // const query = event.queryStringParameters;
-    // console.log("here is qs");
-    // console.log(query);
-    // console.log("here is event");
-    // console.log(event);
-    // console.log("you are done calling login professor");
     var response = {success: true};
     return json(200, "application/json", response);
 };
 
 exports.loginStudent = async (event, context, callback) => {
-    console.log("you are calling login student");
     const body = JSON.parse(event.body);
-    console.log(body);
-
-    pusher.sendPusher(meetingId, "bobl", data);
-
+    if (body.meetingId) {
+        result = await pusher.sendPusher(body.meetingId, "join_notification", event.body);
+    }
     var response = {success: true};
     return json(200, "application/json", response);
 };
 
+exports.onDeck = async (event, context, callback) => {
+    const body = JSON.parse(event.body);
+    if (body.meetingId) {
+        result = await pusher.sendPusher(body.meetingId, "on_deck", event.body);
+        console.log("SENDING PUSHER FOR ON DECK: ");
+        console.log(body);
+    }
+    var response = {success: true};
+    return json(200, "application/json", response);
+};
 
 const StaticFileHandler = require('serverless-aws-static-file-handler')
 

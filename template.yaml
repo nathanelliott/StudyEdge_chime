@@ -98,6 +98,16 @@ Resources:
           Properties:
             Path: /login_student
             Method: POST
+  OnDeckLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers.onDeck
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /on_deck
+            Method: POST
 
 Outputs:
   ApiURL:

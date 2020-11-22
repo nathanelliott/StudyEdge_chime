@@ -2,6 +2,9 @@ var startButton = document.getElementById("start-button");
 var stopButton = document.getElementById("stop-button");
 var studentNameElement = document.getElementById("student-name");
 var urlParams = new URLSearchParams(window.location.search);
+var professor_name = document.getElementById("professor_name");
+var ondeck_name = document.getElementById("ondeck_name");
+var my_name = document.getElementById("my_name");
 
 function generateString() {
     return (
@@ -12,6 +15,9 @@ function generateString() {
 
 var meetingId = urlParams.get("meetingId");
 var clientId = generateString();
+var professorAttendeeId = urlParams.get("professorId");;
+var presentAttendeeId = 0;
+var ondeckAttendeeId = 0;
 
 const logger = new ChimeSDK.ConsoleLogger(
     "ChimeMeetingLogs",
@@ -25,15 +31,33 @@ requestPath += `&meetingId=${meetingId}`;
 startButton.innerText = "Join!";
 startButton.style.display = "block";
 
-var pusherMute = function(){
-    console.log('you called pusherMute');
-    window.meetingSession.audioVideo.chooseAudioInputDevice(null);
-    console.log('completed pusherMute');
-};
-var pusherUnMute = function(){
-    console.log('you called pusherUnMute');
-    window.meetingSession.audioVideo.chooseAudioInputDevice(window.audioDeviceId);    
-    console.log('completed pusherUnMute');
+// var pusherMute = function(){
+    // console.log('you called pusherMute');
+    // window.meetingSession.audioVideo.chooseAudioInputDevice(null);
+    // console.log('completed pusherMute');
+// };
+// var pusherUnMute = function(){
+    // console.log('you called pusherUnMute');
+    // window.meetingSession.audioVideo.chooseAudioInputDevice(window.audioDeviceId);    
+    // console.log('completed pusherUnMute');
+// };
+var pusherOnDeck = function(data){
+    console.log('you called pusherOnDeck');
+    console.log(data);
+    data = JSON.parse(data.data);
+    ondeckAttendeeId = data.AttendeeId;
+    ondeck_name.innerText = data.studentName;
+    console.log("updated the ondeckAttendeeId: " + ondeckAttendeeId);
+    updateTiles(window.meetingSession);
+    console.log('completed updateTiles');
+    if(ondeckAttendeeId == presentAttendeeId){
+        console.log('unmuting this user');
+        window.meetingSession.audioVideo.chooseAudioInputDevice(window.audioDeviceId);    
+    }else{
+        console.log('muting this user');
+        window.meetingSession.audioVideo.chooseAudioInputDevice(null);
+    }
+    console.log('completed pusherOnDeck');
 };
 
 async function start() {
@@ -46,6 +70,10 @@ async function start() {
         return
     }
     console.log("studentName: " + studentName);
+    my_name.innerText = studentName;
+    studentNameElement.style.display = "none";
+    startButton.style.display = "none";
+
     try {
         var response = await fetch(requestPath, {
             method: "POST",
@@ -105,9 +133,9 @@ async function start() {
         meetingSession.audioVideo.bindAudioElement(audioOutputElement);
         meetingSession.audioVideo.start();
 
-        const presentAttendeeId = meetingSession.configuration.credentials.attendeeId;
+        presentAttendeeId = meetingSession.configuration.credentials.attendeeId;
 
-        const studentData = {name: studentName, AttendeeId: presentAttendeeId}
+        const studentData = {name: studentName, AttendeeId: presentAttendeeId, meetingId: meetingId}
         fetch("/login_student", {
             method: 'POST',
             // mode: 'cors', // no-cors, *cors, same-origin
@@ -125,16 +153,15 @@ async function start() {
         console.log("your attendeeid is: " + presentAttendeeId);
         var options = {cluster: 'us2'}
         var pusher = new Pusher('b043f82f81ba511d2ff6', options);
-        var channel = pusher.subscribe(presentAttendeeId);
-        console.log("assigned pusher to channel " + presentAttendeeId);
+        var channel = pusher.subscribe(meetingId);
+        channel.bind('on_deck', pusherOnDeck);
         channel.bind('mute', pusherMute);
         channel.bind('unmute', pusherUnMute);
-        // var professorchannel = pusher.subscribe(meetingId);
-        // professorchannel.trigger("join_notification", {name: studentName, AttendeeId: presentAttendeeId});
 
         console.log("muting the user");
         await meetingSession.audioVideo.realtimeSetCanUnmuteLocalAudio(true);
         await meetingSession.audioVideo.realtimeMuteLocalAudio();
+        pusherMute();
 
         console.log("we finished the race with quality");
     } catch (err) {
@@ -148,13 +175,26 @@ function updateTiles(meetingSession) {
     const tiles = meetingSession.audioVideo.getAllVideoTiles();
     console.log("tiles", tiles);
     tiles.forEach(tile => {
-        let tileId = tile.tileState.tileId
-        var videoElement = document.getElementById("video-" + tileId);
+        let tileId = tile.tileState.tileId;
+        let boundAttendeeId = tile.tileState.boundAttendeeId;
+        let containerId = null;
 
-        if (!videoElement) {
-            videoElement = document.createElement("video");
-            videoElement.id = "video-" + tileId;
-            document.getElementById("video-list").append(videoElement);
+        console.log("boundAttendeeId: " + boundAttendeeId);
+        console.log("professorAttendeeId: " + professorAttendeeId);
+        console.log("ondeckAttendeeId: " + ondeckAttendeeId);
+        console.log("presentAttendeeId: " + presentAttendeeId);
+
+        if(boundAttendeeId == professorAttendeeId){
+            containerId = "video-professor";
+        }else if(boundAttendeeId == ondeckAttendeeId){
+            containerId = "video-ondeck"
+        }else if(boundAttendeeId == presentAttendeeId){
+            containerId = "video-me"
+        }
+        console.log("boundAttendeeId: " + boundAttendeeId);
+        console.log("containerId: " + containerId);
+        if(containerId != null){
+            let videoElement = document.getElementById(containerId);
             meetingSession.audioVideo.bindVideoElement(
                 tileId,
                 videoElement

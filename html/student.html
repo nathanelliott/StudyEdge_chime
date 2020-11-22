@@ -10,19 +10,42 @@
     <script src="assets/js/amazon-chime-sdk.min.js"></script>
     <script src="https://unpkg.com/uuid@latest/dist/umd/uuidv4.min.js"></script>
     <style>
-      #video-list video {
+      #video-professor{
         width: 600px;
         height: 400px;
+      }
+      #video-ondeck{
+        width: 600px;
+        height: 400px;
+      }
+      #video-me{
+        width: 300px;
+        height: 200px;
       }
     </style>
   </head>
   <body>
         <h1>Welcome to office hours student!</h1>
-        <input type="text" name="student-name" id="student-name"/>
+        <input type="text" name="student-name" id="student-name" placeholder="Student Name"/>
         <audio style="display: none" id="meeting-audio"></audio>
         <button type="button" id="start-button" style="display: none;"></button>
         <p id="meeting-link"></p>
-        <div id="video-list"></div>
+        
+        <HR>
+
+        Professor: <div id="professor_name" style="display: inline;"></div><BR>
+        <video id="video-professor"></video>
+            
+        <HR>
+
+        Student In Session:<div id="ondeck_name" style="display: inline;"></div><BR>
+        <video id="video-ondeck"></video>
+
+        <HR>
+
+        My video window: <div id="my_name" style="display: inline;"></div><BR>
+        <video id="video-me"></video>
+
         <script src="assets/js/student.js"></script>
   </body>
 </html>
