@@ -29,20 +29,14 @@ startButton.innerText = "Launch Office Hours Session!";
 startButton.style.display = "block";
 
 var pusherJoinNotification = function(data){
-    console.log('you called pusherJoinNotification');
-    console.log(data);
     data = JSON.parse(data.data);
-
     let attendee = {meetingId: data.meetingId, attendeeId: data.AttendeeId, name: data.name}
-    console.log(attendee);
     attendeeNames.push(attendee);
     setAttendeeName(data.AttendeeId);
-    console.log('completed pusherJoinNotification');
 };
 
 
 function nextOnDeck(AttendeeId, meetingId, studentName){
-    console.log("calling nextOnDeck");
     ondeckAttendeeId = AttendeeId;
     const onDeckData = {AttendeeId: AttendeeId, meetingId: meetingId, studentName: studentName}
     fetch("on_deck", {
@@ -56,11 +50,8 @@ function nextOnDeck(AttendeeId, meetingId, studentName){
         referrerPolicy: 'no-referrer',
         body: JSON.stringify(onDeckData)
     });
-    
-    console.log("updated the ondeckAttendeeId: " + ondeckAttendeeId);
     updateTiles(window.meetingSession);
     document.getElementById("student_name").innerText = studentName;
-    console.log("Finished nextOnDeck");
 }
 
 async function start() {
@@ -72,7 +63,6 @@ async function start() {
         alert("you must provide your name");
         return
     }
-    console.log("professorName: " + professorName);
     document.getElementById("professor_name").innerText = professorName;
     try {
         let requestPath = `join?clientId=${clientId}&professorName=${professorName}`;
@@ -96,8 +86,6 @@ async function start() {
         );
 
         professorAttendeeId = meetingSession.configuration.credentials.attendeeId;
-        console.log("your attendeeid is: " + professorAttendeeId);
-
         const audioInputs = await meetingSession.audioVideo.listAudioInputDevices();
         const videoInputs = await meetingSession.audioVideo.listVideoInputDevices();
 
@@ -164,8 +152,6 @@ function setAttendeeName(attendeeId){
                 break;
             }
         }
-    }else{
-        console.log("CANNOT FIND ELEMENT: div-" + attendeeId);
     }
 }
 
@@ -231,14 +217,11 @@ async function stop() {
 }
 
 // async function get_attendees(){
-    // console.log("calling uri get_attendees?meetingId=" + meetingId);
     // const response = await fetch("get_attendees?meetingId=" + meetingId, {
         // method: "GET",
         // headers: new Headers(),
     // });
     // const data = await response.json();
-    // console.log(data);
-    // console.log("complete");
 // }
 
 
