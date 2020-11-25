@@ -10,23 +10,84 @@
     <script src="assets/js/amazon-chime-sdk.min.js"></script>
     <script src="https://unpkg.com/uuid@latest/dist/umd/uuidv4.min.js"></script>
     <style>
+      body {
+          font: 14px Arial,sans-serif; 
+          margin: 0px;
+      }
+      .header {
+          padding: 10px 20px;
+          background: #acb3b9; 
+      }
+      .header h1 {
+        font-size: 24px;
+      }
+      .container {
+        width: 100%;
+        background: #f2f2f2; 
+      }
+      .queue, .deck {
+        float: left; 
+        padding: 20px;
+        min-height: 170px;
+        box-sizing: border-box;
+      }
+      .queue {            
+          width: 20%;             
+          background: #d4d7dc;
+      }
+      .deck {
+          width: 80%;
+          height: 100%;
+      }
+      .clearfix:after {
+        content: ".";
+        display: block;
+        height: 0;
+        clear: both;
+        visibility: hidden;
+      }
       #video-professor{
-        width: 300px;
-        height: 200px;
+        /* max-width: 60%; */
+        
+        /* height: 50%; */
+        /* width: auto; */
+        width: 400px;
+        height: auto;
       }
       #video-ondeck{
-        width: 600px;
-        height: 400px;
+        /* height: 50%; */
+        /* width: auto; */
+        width: 400px;
+        /* max-width: 100%; */
+        height: auto;
       }
     </style>
   </head>
   <body>
+    <div class="container">
+      <div class="header">
         <h1>Welcome to office hours, professor!</h1>
         <input type="text" name="professor-name" id="professor-name" placeholder="Professor Name"/>
         <audio style="display: none" id="meeting-audio"></audio>
         <button type="button" id="start-button" style="display: none;"></button>
         <button type="button" id="stop-button" style="display: none;">End Session</button>
+        <p id="meeting-link"></p>
+      </div>
 
+      <div class="wrapper clearfix">
+        <div class="deck">
+            Student On Deck: <div id="student_name" style="display: inline;"></div><BR>
+            <video id="video-ondeck"></video>
+            <BR>
+            Professor: <div id="professor_name" style="display: inline;"></div><BR>
+            <video id="video-professor"></video>
+        </div>
+        <div class="queue">
+            Students in Queue<BR>
+            <div id="video-list"></div>
+        </div>
+      </div>
+    </div>
         <!--        
         <button type="button" id="get_attendees" style="display: none;">get attendees</button>
         List of users:<BR>
@@ -34,24 +95,8 @@
         <button type="button" id="mute_attendee" style="display: none;">mute attendee</button>
         <button type="button" id="unmute_attendee" style="display: none;">unmute attendee</button>
         -->
+
         
-        <p id="meeting-link"></p>
-        <BR><HR><BR>
-
-        On Deck<BR>
-        <div id="video-ondeck"></div>
-
-        <HR>
-
-        Student List<BR>
-        <div id="video-list"></div>
-
-        <HR>
-
-        My Screen<BR>
-        <div id="video-professor"></div>
-
-
         <script src="assets/js/professor.js"></script>
   </body>
 </html>

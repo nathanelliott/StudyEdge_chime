@@ -6,6 +6,7 @@ var professorNameElement = document.getElementById("professor-name");
 var urlParams = new URLSearchParams(window.location.search);
 var professorAttendeeId = "pending 1";
 var ondeckAttendeeId = "pending 2";
+var attendeeNames = [];
 
 function generateString() {
     return (
@@ -14,7 +15,6 @@ function generateString() {
     );
 }
 
-var isMeetingHost = false;
 var meetingId = urlParams.get("meetingId");
 var clientId = generateString();
 
@@ -25,13 +25,6 @@ const logger = new ChimeSDK.ConsoleLogger(
 
 const deviceController = new ChimeSDK.DefaultDeviceController(logger);
 
-let requestPath = `join?clientId=${clientId}`;
-if (!meetingId) {
-    isMeetingHost = true;
-} else {
-    requestPath += `&meetingId=${meetingId}`;
-}
-
 startButton.innerText = "Launch Office Hours Session!";
 startButton.style.display = "block";
 
@@ -39,24 +32,20 @@ var pusherJoinNotification = function(data){
     console.log('you called pusherJoinNotification');
     console.log(data);
     data = JSON.parse(data.data);
-    nElement = document.getElementById("div-" + data.AttendeeId);
-    if(nElement){
-        AttendeeInfo = "<BR><HR><BR><A href=\"JAVASCRIPT:nextOnDeck('" + data.AttendeeId + "', '" + data.meetingId + "', '" + data.name + "');\">";
-        AttendeeInfo = AttendeeInfo + "Student: " + data.name;
-        AttendeeInfo = AttendeeInfo + "</A>";
-        nElement.innerHTML = AttendeeInfo;
-        console.log(AttendeeInfo);
-    }else{
-        console.log("CANNOT FIND ELEMENT: div-" + data.AttendeeId);
-    }
+
+    let attendee = {meetingId: data.meetingId, attendeeId: data.AttendeeId, name: data.name}
+    console.log(attendee);
+    attendeeNames.push(attendee);
+    setAttendeeName(data.AttendeeId);
     console.log('completed pusherJoinNotification');
 };
+
 
 function nextOnDeck(AttendeeId, meetingId, studentName){
     console.log("calling nextOnDeck");
     ondeckAttendeeId = AttendeeId;
     const onDeckData = {AttendeeId: AttendeeId, meetingId: meetingId, studentName: studentName}
-    fetch("/on_deck", {
+    fetch("on_deck", {
         method: 'POST',
         cache: 'no-cache',
         credentials: 'same-origin',
@@ -70,6 +59,7 @@ function nextOnDeck(AttendeeId, meetingId, studentName){
     
     console.log("updated the ondeckAttendeeId: " + ondeckAttendeeId);
     updateTiles(window.meetingSession);
+    document.getElementById("student_name").innerText = studentName;
     console.log("Finished nextOnDeck");
 }
 
@@ -83,7 +73,9 @@ async function start() {
         return
     }
     console.log("professorName: " + professorName);
+    document.getElementById("professor_name").innerText = professorName;
     try {
+        let requestPath = `join?clientId=${clientId}&professorName=${professorName}`;
         var response = await fetch(requestPath, {
             method: "POST",
             headers: new Headers(),
@@ -111,10 +103,6 @@ async function start() {
 
         window.audioDeviceId = audioInputs[0].deviceId;
         window.videoDeviceId = videoInputs[0].deviceId;
-        console.log("here are the device ids");
-        console.log(window.audioDeviceId);
-        console.log(window.videoDeviceId);
-
 
         await meetingSession.audioVideo.chooseAudioInputDevice(
             audioInputs[0].deviceId
@@ -126,8 +114,6 @@ async function start() {
         const observer = {
             // videoTileDidUpdate is called whenever a new tile is created or tileState changes.
             videoTileDidUpdate: (tileState) => {
-                console.log("VIDEO TILE DID UPDATE");
-                console.log(tileState);
                 // Ignore a tile without attendee ID and other attendee's tile.
                 if (!tileState.boundAttendeeId) {
                     return;
@@ -153,7 +139,6 @@ async function start() {
         var options = {cluster: 'us2'}
         var pusher = new Pusher('b043f82f81ba511d2ff6', options);
         var channel = pusher.subscribe(meetingId);
-        console.log("assigned pusher to channel " + meetingId);
         channel.bind('join_notification', pusherJoinNotification);
         
         // Make everything visible
@@ -162,22 +147,34 @@ async function start() {
         professorNameElement.style.display = "none";
 
     } catch (err) {
-        console.log("oh shit there is an error");
         console.log(err);
+    }
+}
+
+
+function setAttendeeName(attendeeId){
+    nElement = document.getElementById("div-" + attendeeId);
+    if(nElement){
+        for (x in attendeeNames){
+            if(attendeeNames[x].attendeeId == attendeeId){
+                AttendeeInfo = "<BR><HR><BR><A href=\"JAVASCRIPT:nextOnDeck('" + attendeeNames[x].attendeeId + "', '" + attendeeNames[x].meetingId + "', '" + attendeeNames[x].name + "');\">";
+                AttendeeInfo = AttendeeInfo + "Student: " + attendeeNames[x].name;
+                AttendeeInfo = AttendeeInfo + "</A>";
+                nElement.innerHTML = AttendeeInfo;
+                break;
+            }
+        }
+    }else{
+        console.log("CANNOT FIND ELEMENT: div-" + attendeeId);
     }
 }
 
 function updateTiles(meetingSession) {
     const tiles = meetingSession.audioVideo.getAllVideoTiles();
-    console.log("updating tiles");
-    console.log("tiles", tiles);
     tiles.forEach(tile => {
         let tileId = tile.tileState.tileId;
         let boundAttendeeId = tile.tileState.boundAttendeeId;
         let containerId = null;
-        console.log("boundAttendeeId: " + boundAttendeeId);
-        console.log("professorAttendeeId: " + professorAttendeeId);
-        console.log("ondeckAttendeeId: " + ondeckAttendeeId);
 
         if(boundAttendeeId == professorAttendeeId){
             containerId = "video-professor";
@@ -186,34 +183,38 @@ function updateTiles(meetingSession) {
         }else{
             containerId = "video-list";
         }
-        console.log("container id is: " + containerId);
         let videoId = containerId + "-video-" + tileId;
         let videoElement = document.getElementById(containerId);
-        let newVideoElement = document.getElementById(videoId);
-        if(containerId == "video-ondeck"){
-            //remove the elements added from append
-            // videoElement.remove();
-            videoElement.innerHTML = "asdf";
-        }
-        if (!newVideoElement) {
-            if(containerId == "video-list"){
-                nElement = document.createElement("div");
-                nElement.id = "div-" + boundAttendeeId;
-                console.log("SETTING video list attendee element div-" + boundAttendeeId);
-                nElement.innerHTML = "tbd";
-                videoElement.append(nElement);
-            }
-
-            newVideoElement = document.createElement("video");
-            newVideoElement.id = videoId;
-            newVideoElement.style.width = "300px";
-            newVideoElement.style.height = "200px";
-            videoElement.append(newVideoElement);
-
+        
+        if(containerId == "video-ondeck" || containerId == "video-professor"){
+            // remove them from the queue
+            meetingSession.audioVideo.unbindVideoElement(tileId);
+            // replace at the top
             meetingSession.audioVideo.bindVideoElement(
                 tileId,
-                newVideoElement
+                videoElement
             );
+        }else{
+            let newVideoElement = document.getElementById(videoId);
+            if (!newVideoElement) {
+                if(containerId == "video-list"){
+                    nElement = document.createElement("div");
+                    nElement.id = "div-" + boundAttendeeId;
+                    nElement.innerHTML = "tbd";
+                    videoElement.append(nElement);
+                    setAttendeeName(boundAttendeeId);
+                }
+                newVideoElement = document.createElement("video");
+                newVideoElement.id = videoId;
+                newVideoElement.style.width = "200px";
+                newVideoElement.style.height = "auto";
+                videoElement.append(newVideoElement);
+    
+                meetingSession.audioVideo.bindVideoElement(
+                    tileId,
+                    newVideoElement
+                );
+            }
         }
     })
 }
@@ -227,7 +228,6 @@ async function stop() {
         headers: new Headers(),
     });
     const data = await response.json();
-    console.log(data);
 }
 
 // async function get_attendees(){
@@ -241,29 +241,9 @@ async function stop() {
     // console.log("complete");
 // }
 
-// async function unmuteAttendee(){
-    // console.log("you called unmute");
-    // console.log(attendeeIdInput.value);
-// }
-
-/*
-async function muteAttendee(){
-    console.log("you called mute");
-    console.log(attendeeIdInput.value);
-    // window.audioDeviceId = audioInputs[0].deviceId;
-    // window.videoDeviceId = videoInputs[0].deviceId;
-    console.log("here are the device ids");
-    console.log(window.audioDeviceId);
-    console.log(window.videoDeviceId);
-    await meetingSession.audioVideo.chooseAudioInputDevice(null);
-}
-*/
 
 window.addEventListener("DOMContentLoaded", () => {
     startButton.addEventListener("click", start);
-
-    if (isMeetingHost) {
-        stopButton.addEventListener("click", stop);
-        // attendeesButton.addEventListener("click", get_attendees);
-    }
+    stopButton.addEventListener("click", stop);
+    // attendeesButton.addEventListener("click", get_attendees);
 });

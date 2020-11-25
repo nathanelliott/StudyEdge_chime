@@ -26,39 +26,36 @@ const logger = new ChimeSDK.ConsoleLogger(
 
 const deviceController = new ChimeSDK.DefaultDeviceController(logger);
 
-let requestPath = `join?clientId=${clientId}`;
-requestPath += `&meetingId=${meetingId}`;
+
 startButton.innerText = "Join!";
 startButton.style.display = "block";
 
-// var pusherMute = function(){
-    // console.log('you called pusherMute');
-    // window.meetingSession.audioVideo.chooseAudioInputDevice(null);
-    // console.log('completed pusherMute');
-// };
-// var pusherUnMute = function(){
-    // console.log('you called pusherUnMute');
-    // window.meetingSession.audioVideo.chooseAudioInputDevice(window.audioDeviceId);    
-    // console.log('completed pusherUnMute');
-// };
+var pusherMute = function(){
+    MuteMe();
+};
+var pusherUnMute = function(){
+    UnmuteMe();
+};
+
 var pusherOnDeck = function(data){
-    console.log('you called pusherOnDeck');
-    console.log(data);
     data = JSON.parse(data.data);
     ondeckAttendeeId = data.AttendeeId;
     ondeck_name.innerText = data.studentName;
-    console.log("updated the ondeckAttendeeId: " + ondeckAttendeeId);
     updateTiles(window.meetingSession);
-    console.log('completed updateTiles');
     if(ondeckAttendeeId == presentAttendeeId){
-        console.log('unmuting this user');
-        window.meetingSession.audioVideo.chooseAudioInputDevice(window.audioDeviceId);    
+        UnmuteMe();
     }else{
-        console.log('muting this user');
-        window.meetingSession.audioVideo.chooseAudioInputDevice(null);
+        MuteMe();
     }
-    console.log('completed pusherOnDeck');
 };
+
+function MuteMe(){
+    window.meetingSession.audioVideo.realtimeMuteLocalAudio();
+}
+
+function UnmuteMe(){
+    window.meetingSession.audioVideo.realtimeUnmuteLocalAudio();
+}
 
 async function start() {
     if (window.meetingSession) {
@@ -69,12 +66,12 @@ async function start() {
         alert("you must provide your name");
         return
     }
-    console.log("studentName: " + studentName);
     my_name.innerText = studentName;
     studentNameElement.style.display = "none";
     startButton.style.display = "none";
 
     try {
+        let requestPath = `join?clientId=${clientId}&meetingId=${meetingId}&studentName=${studentName}`;
         var response = await fetch(requestPath, {
             method: "POST",
             headers: new Headers(),
@@ -87,8 +84,7 @@ async function start() {
             data.Info.Meeting.Meeting,
             data.Info.Attendee.Attendee
         );
-        window.nathan = "asdf";
-        console.log(window.nathan);
+
         window.meetingSession = new ChimeSDK.DefaultMeetingSession(
             configuration,
             logger,
@@ -100,10 +96,6 @@ async function start() {
 
         window.audioDeviceId = audioInputs[0].deviceId;
         window.videoDeviceId = videoInputs[0].deviceId;
-        console.log("here are the device ids");
-        console.log(window.audioDeviceId);
-        console.log(window.videoDeviceId);
-
 
         await meetingSession.audioVideo.chooseAudioInputDevice(
             audioInputs[0].deviceId
@@ -115,8 +107,6 @@ async function start() {
         const observer = {
             // videoTileDidUpdate is called whenever a new tile is created or tileState changes.
             videoTileDidUpdate: (tileState) => {
-                console.log("VIDEO TILE DID UPDATE");
-                console.log(tileState);
                 // Ignore a tile without attendee ID and other attendee's tile.
                 if (!tileState.boundAttendeeId) {
                     return;
@@ -136,7 +126,7 @@ async function start() {
         presentAttendeeId = meetingSession.configuration.credentials.attendeeId;
 
         const studentData = {name: studentName, AttendeeId: presentAttendeeId, meetingId: meetingId}
-        fetch("/login_student", {
+        fetch("login_student", {
             method: 'POST',
             // mode: 'cors', // no-cors, *cors, same-origin
             cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
@@ -150,7 +140,6 @@ async function start() {
             body: JSON.stringify(studentData) // body data type must match "Content-Type" header
         });
 
-        console.log("your attendeeid is: " + presentAttendeeId);
         var options = {cluster: 'us2'}
         var pusher = new Pusher('b043f82f81ba511d2ff6', options);
         var channel = pusher.subscribe(meetingId);
@@ -158,31 +147,21 @@ async function start() {
         channel.bind('mute', pusherMute);
         channel.bind('unmute', pusherUnMute);
 
-        console.log("muting the user");
         await meetingSession.audioVideo.realtimeSetCanUnmuteLocalAudio(true);
-        await meetingSession.audioVideo.realtimeMuteLocalAudio();
-        pusherMute();
-
-        console.log("we finished the race with quality");
+        MuteMe();
     } catch (err) {
         // handle error
-        console.log("oh shit there is an error");
         console.log(err);
     }
 }
 
 function updateTiles(meetingSession) {
     const tiles = meetingSession.audioVideo.getAllVideoTiles();
-    console.log("tiles", tiles);
+    // console.log("tiles", tiles);
     tiles.forEach(tile => {
         let tileId = tile.tileState.tileId;
         let boundAttendeeId = tile.tileState.boundAttendeeId;
         let containerId = null;
-
-        console.log("boundAttendeeId: " + boundAttendeeId);
-        console.log("professorAttendeeId: " + professorAttendeeId);
-        console.log("ondeckAttendeeId: " + ondeckAttendeeId);
-        console.log("presentAttendeeId: " + presentAttendeeId);
 
         if(boundAttendeeId == professorAttendeeId){
             containerId = "video-professor";
@@ -191,8 +170,7 @@ function updateTiles(meetingSession) {
         }else if(boundAttendeeId == presentAttendeeId){
             containerId = "video-me"
         }
-        console.log("boundAttendeeId: " + boundAttendeeId);
-        console.log("containerId: " + containerId);
+
         if(containerId != null){
             let videoElement = document.getElementById(containerId);
             meetingSession.audioVideo.bindVideoElement(
@@ -212,7 +190,6 @@ async function stop() {
         headers: new Headers(),
     });
     const data = await response.json();
-    console.log(data);
 }
 
 window.addEventListener("DOMContentLoaded", () => {

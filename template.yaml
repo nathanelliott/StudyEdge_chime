@@ -36,6 +36,10 @@ Resources:
     Type: 'AWS::Serverless::Function'
     Properties:
       Handler: handlers.index
+      Environment:
+        Variables:
+          MYSQL_HOST: default
+          MYSQL_PASSWORD: default
       Events:
         Api1:
           Type: Api
@@ -51,6 +55,10 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: handlers.join
+      Environment:
+        Variables:
+          MYSQL_HOST: default
+          MYSQL_PASSWORD: default
       Events:
         Api1:
           Type: Api
@@ -72,6 +80,10 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: handlers.get_attendees
+      Environment:
+        Variables:
+          MYSQL_HOST: default
+          MYSQL_PASSWORD: default
       Events:
         Api1:
           Type: Api
@@ -92,6 +104,14 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: handlers.loginStudent
+      Environment:
+        Variables:
+          MYSQL_HOST: default
+          MYSQL_USER: default
+          MYSQL_PASSWORD: default
+          PUSHER_APPID: default
+          PUSHER_KEY: default
+          PUSHER_SECRET: default
       Events:
         Api1:
           Type: Api
@@ -102,6 +122,14 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: handlers.onDeck
+      Environment:
+        Variables:
+          MYSQL_HOST: default
+          MYSQL_USER: default
+          MYSQL_PASSWORD: default
+          PUSHER_APPID: default
+          PUSHER_KEY: default
+          PUSHER_SECRET: default
       Events:
         Api1:
           Type: Api

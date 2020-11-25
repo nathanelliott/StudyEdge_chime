@@ -77,8 +77,7 @@ async function start() {
             data.Info.Meeting.Meeting,
             data.Info.Attendee.Attendee
         );
-        window.nathan = "asdf";
-        console.log(window.nathan);
+
         window.meetingSession = new ChimeSDK.DefaultMeetingSession(
             configuration,
             logger,

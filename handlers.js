@@ -15,10 +15,17 @@ const json = (statusCode, contentType, body) => {
 };
 
 exports.join = async (event, context, callback) => {
-    console.log("we are here in the join");
     const query = event.queryStringParameters;
     let meetingId = null;
     let meeting = null;
+    let professorName = null;
+    let studentName = null;
+    if(query.professorName){
+        professorName = query.professorName;
+    }
+    if(query.studentName){
+        studentName = query.studentName;
+    }
     if (!query.meetingId) {
         //new meeting
         meetingId = uuidv4();
@@ -67,10 +74,9 @@ exports.end = async (event, context, callback) => {
 };
 
 exports.get_attendees = async (event, context, callback) => {
+    /*
     // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Chime.html#listAttendees-property
     const query = event.queryStringParameters;
-    console.log("called get_attendees");
-    console.log(query);
     meetingId = query.meetingId;
     const attendees = await chime
         .listAttendees({
@@ -78,20 +84,16 @@ exports.get_attendees = async (event, context, callback) => {
             MeetingId: meetingId
         })
         .promise();
-    console.log("attendees are here");
-    console.log(attendees);
     // var vwait_time = await api.get_wait_time();
-    // console.log(vwait_time);
-    // var attendees = {first_name:"Nathan", last_name:"Elliott", wait_time: vwait_time};
     // var attendees = await api.get_attendees_list(8);
     var response = {meetingId:meetingId, attendees:attendees};
     return json(200, "application/json", response);
+    */
+   return json(200, "application/json", {"first_name": "johnaban5", "mysql": process.env.MYSQL_HOST, "last_name": "ell"});
 };
 
 exports.loginProfessor = async (event, context, callback) => {
-    console.log("you are calling login professor");
     const body = event.body;
-    console.log(body);
     var response = {success: true};
     return json(200, "application/json", response);
 };
@@ -109,8 +111,6 @@ exports.onDeck = async (event, context, callback) => {
     const body = JSON.parse(event.body);
     if (body.meetingId) {
         result = await pusher.sendPusher(body.meetingId, "on_deck", event.body);
-        console.log("SENDING PUSHER FOR ON DECK: ");
-        console.log(body);
     }
     var response = {success: true};
     return json(200, "application/json", response);
